@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registry Storage Usage Visualization</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js" integrity="sha384-SlE991lGASHoBfWbelyBPLsUlwY1GwNDJo3jSJO04KZ33K2bwfV9YBauFfnzvynJ" crossorigin="anonymous"></script>
+    <script src="gitlabRegistryUsage.js" type="text/javascript"></script>
+</head>
+
+<body>
+    <div id="gitlabRegistryUsage" class="container">
+        <div class="row d-none" id="gitlabRegistryUsageControls1">
+            <div class="col">
+                <button id="gitlabRegistryUsageLogoutButton" type="button" class="btn m-2 btn-outline-primary"><i class="fas fa-sign-out-alt"></i></button>
+                <span id="requestTime" class="text-muted"></span>
+            </div>
+            <div class="col">
+                <div class="btn-group float-right m-2">
+                    <button class="btn btn-primary" type="button" id="unitButton" disabled>
+                        KiB
+                    </button>
+                    <button class="btn btn-primary" type="button" id="orderButton" disabled>
+                        Descending <i class="fas fa-angle-down"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col">
+                <div class="btn-group float-right m-2">
+                    <button type="button" id="gitlabRegistryUsageorderByText" class="btn btn-outline-primary" disabled>Order by</button>
+                    <button type="button" id="gitlabRegistryUsageImageSizeButton" class="btn btn-primary" disabled>Image-Size</button>
+                    <button type="button" id="gitlabRegistryUsageSizeButton" class="btn btn-outline-primary" disabled>Tag-Size</button>
+                    <button type="button" id="gitlabRegistryUsageNameButton" class="btn btn-outline-primary" disabled>Name</button>
+                </div>
+            </div>
+        </div>
+        <div class="row d-none"  id="gitlabRegistryUsageControls2">
+            <div class="col mr-2">
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <button class="btn btn-primary" id="gitlabRegistryUsageSearchButton" type="button" disabled><i class="fas fa-search"></i></button>
+                    </div>
+                    <input type="text" class="form-control" id="gitlabRegistryUsageSearchInput" placeholder="Search image or tag" aria-label="Image or Tag Search" disabled>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary dropdown-toggle" id="relationDropdown" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" disabled>AND</span></button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" id="relationAnd">AND</a></li>
+                            <li><a class="dropdown-item" href="#" id="relationOr">OR</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div id="gitlabRegistryUsageView" class="col">
+            </div>
+        </div>
+    </div>
+</body>
+</html>
