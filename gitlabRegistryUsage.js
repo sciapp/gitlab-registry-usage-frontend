@@ -1,7 +1,7 @@
 {
     // Replace the following URLs
     //---------------------------------------------------------------------------------------------
-    const SERVER_URL = `https://exampleserver/gitlab-registry-usage-rest/images?embed=true`;
+    const SERVER_URL = `https://exampleserver/gitlab-registry-usage-rest/repositories?embed=true`;
     const LOGIN_URL = `https://exampleserver/gitlab-registry-usage-rest/auth_token`;
     //---------------------------------------------------------------------------------------------
     
@@ -20,7 +20,7 @@
             this.checkLoginState();
             
             let unitButton = $(`#unitButton`);
-            let viewButtons = [$(`#gitlabRegistryUsageImageSizeButton`), $(`#gitlabRegistryUsageSizeButton`), $(`#gitlabRegistryUsageNameButton`)];
+            let viewButtons = [$(`#gitlabRegistryUsageRepositorySizeButton`), $(`#gitlabRegistryUsageSizeButton`), $(`#gitlabRegistryUsageNameButton`)];
             unitButton.click(() => {
                 this.kibis = !this.kibis;
                 if (this.kibis) {
@@ -40,7 +40,7 @@
             
             viewButtons[0].click(() => {
                 toggleButtonMenu(0);
-                this.refreshView = (search=[]) => { this.imageview(this.data, this.imageSorted, this.tagsSorted, this.max, this.imagesum, this.maximage, search); };
+                this.refreshView = (search=[]) => { this.repoview(this.data, this.repoSorted, this.tagsSorted, this.max, this.reposum, this.maxrepo, search); };
                 this.refreshView(this.searchSplit($(`#gitlabRegistryUsageSearchInput`).val()));
             });
             
@@ -52,7 +52,7 @@
             
             viewButtons[2].click(() => {
                 toggleButtonMenu(2);
-                this.refreshView = (search=[]) => { this.imageview(this.data, this.imageSortedAlpha, this.tagsSortedAlpha, this.max, this.imagesum, this.maximage, search); };
+                this.refreshView = (search=[]) => { this.repoview(this.data, this.repoSortedAlpha, this.tagsSortedAlpha, this.max, this.reposum, this.maxrepo, search); };
                 this.refreshView(this.searchSplit($(`#gitlabRegistryUsageSearchInput`).val()));
             });
             
@@ -131,7 +131,7 @@
                     </div>
                     <button type="submit" id="gitlabRegistryUsageLoginButton" class="btn btn-primary">Login</button>
                 </form>
-                <div id="gitlabRegistryUsage">
+                <div id="gitlabRegistryUsageMessage">
                 </div>`));
                 $(`#gitlabRegistryUsageLoginForm`).submit((e) => {
                     this.login();
@@ -146,7 +146,7 @@
             let username = $(`#gitlabRegistryUsageNameInput`).val();
             let password = $(`#gitlabRegistryUsagePasswordInput`).val();
             if (username == `` || password == ``) {
-                $(`#gitlabRegistryUsage`).html($(`<div class="alert alert-danger">
+                $(`#gitlabRegistryUsageMessage`).html($(`<div class="alert alert-danger mt-3">
                         <strong>Login failed.</strong> Please insert username and password.<br />
                     </div>`));
                 return;
@@ -160,11 +160,11 @@
                 },
                 error: (answer) => {
                     if (answer.status == 401) {
-                        $(`#gitlabRegistryUsage`).html($(`<div class="alert alert-danger">
+                        $(`#gitlabRegistryUsageMessage`).html($(`<div class="alert alert-danger mt-3">
                                 <strong>Login failed.</strong> Wrong username and password combination. Please try again.
                             </div>`));
                     } else {
-                        $(`#gitlabRegistryUsage`).html($(`<div class="alert alert-danger">
+                        $(`#gitlabRegistryUsageMessage`).html($(`<div class="alert alert-danger mt-3">
                                 <strong>Login failed.</strong> Please try again later.<br />
                             </div>`));
                     }
@@ -200,73 +200,73 @@
                     $(`#gitlabRegistryUsageorderByText`).attr(`disabled`, true);
                     this.data = [];
                     this.max = 0;
-                    this.maximage = 0;
+                    this.maxrepo = 0;
                     $(`#requestTime`).text(this.getTimeString(input.timestamp * 1000));
-                    this.sorted = []; this.imageSorted = []; this.imageSortedAlpha = [];
-                    this.tagsSortedAlpha = {}; this.tagsSorted = {}; this.imagesum = {};
+                    this.sorted = []; this.repoSorted = []; this.repoSortedAlpha = [];
+                    this.tagsSortedAlpha = {}; this.tagsSorted = {}; this.reposum = {};
                     for (let index in input._embedded.items) {
-                        let image = input._embedded.items[index].name;
-                        this.imagesum[image] = [0, 0];
-                        this.tagsSorted[image] = [];
-                        this.imageSortedAlpha.push(image);
-                        this.tagsSortedAlpha[image] = [];
-                        this.imagesum[image][0] = input._embedded.items[index].size;
-                        this.imagesum[image][1] = input._embedded.items[index].disk_size;
-                        this.data[image] = {};
+                        let repo = input._embedded.items[index].name;
+                        this.reposum[repo] = [0, 0];
+                        this.tagsSorted[repo] = [];
+                        this.repoSortedAlpha.push(repo);
+                        this.tagsSortedAlpha[repo] = [];
+                        this.reposum[repo][0] = input._embedded.items[index].size;
+                        this.reposum[repo][1] = input._embedded.items[index].disk_size;
+                        this.data[repo] = {};
                         if (input._embedded.items[index].size != null) {
                             for (let tagindex in input._embedded.items[index]._embedded.related._embedded.items) {
                                 let tag = input._embedded.items[index]._embedded.related._embedded.items[tagindex].name;
-                                this.data[image][tag] = {
+                                this.data[repo][tag] = {
                                     storage: [input._embedded.items[index]._embedded.related._embedded.items[tagindex].size, input._embedded.items[index]._embedded.related._embedded.items[tagindex].disk_size]
                                 };
-                                this.tagsSortedAlpha[image].push(tag);
-                                if (this.data[image][tag].storage[0] > this.max) {
-                                    this.max = this.data[image][tag].storage[0];
+                                this.tagsSortedAlpha[repo].push(tag);
+                                if (this.data[repo][tag].storage[0] > this.max) {
+                                    this.max = this.data[repo][tag].storage[0];
                                 }
                                 
                                 let i = 0;
-                                while (i < this.sorted.length && this.data[this.sorted[i][0]][this.sorted[i][1]].storage[1] > this.data[image][tag].storage[1]) {
+                                while (i < this.sorted.length && this.data[this.sorted[i][0]][this.sorted[i][1]].storage[1] > this.data[repo][tag].storage[1]) {
                                     i++;
                                 }
                                 for (let ii = this.sorted.length; ii > i; ii--) {
                                     this.sorted[ii] = this.sorted[ii - 1];
                                 }
                                 
-                                this.sorted[i] = [image, tag];
+                                this.sorted[i] = [repo, tag];
                                 
                                 i = 0;
-                                while (i < this.tagsSorted[image].length && this.data[image][this.tagsSorted[image][i]].storage[1] > this.data[image][tag].storage[1]) {
+                                while (i < this.tagsSorted[repo].length && this.data[repo][this.tagsSorted[repo][i]].storage[1] > this.data[repo][tag].storage[1]) {
                                     i++;
                                 }
                                 
-                                for (let ii = this.tagsSorted[image].length; ii > i; ii--) {
-                                    this.tagsSorted[image][ii] = this.tagsSorted[image][ii - 1];
+                                for (let ii = this.tagsSorted[repo].length; ii > i; ii--) {
+                                    this.tagsSorted[repo][ii] = this.tagsSorted[repo][ii - 1];
                                 }
                                 
-                                this.tagsSorted[image][i] = tag;
+                                this.tagsSorted[repo][i] = tag;
                             }
-                            this.tagsSortedAlpha[image].sort();
+                            this.tagsSortedAlpha[repo].sort();
                         } else {
-                            this.imagesum[image][0] = -1;
-                            this.imagesum[image][1] = -1;
-                            this.imagesum[image] = [-1, -1];
+                            this.reposum[repo][0] = -1;
+                            this.reposum[repo][1] = -1;
+                            this.reposum[repo] = [-1, -1];
                         }
 
                         let i = 0;
-                        while (i < this.imageSorted.length && this.imagesum[this.imageSorted[i]][1] > this.imagesum[image][1]) {
+                        while (i < this.repoSorted.length && this.reposum[this.repoSorted[i]][1] > this.reposum[repo][1]) {
                             i++;
                         }
-                        for (let ii = this.imageSorted.length; ii > i; ii--) {
-                            this.imageSorted[ii] = this.imageSorted[ii - 1];
+                        for (let ii = this.repoSorted.length; ii > i; ii--) {
+                            this.repoSorted[ii] = this.repoSorted[ii - 1];
                         }
-                        this.imageSorted[i] = image;
-                        if (this.imagesum[image][0] > this.maximage) {
-                            this.maximage = this.imagesum[image][0];
+                        this.repoSorted[i] = repo;
+                        if (this.reposum[repo][0] > this.maxrepo) {
+                            this.maxrepo = this.reposum[repo][0];
                         }
                     }
-                    this.imageSortedAlpha.sort();
+                    this.repoSortedAlpha.sort();
                     
-                    this.refreshView = (search=[]) => { this.imageview(this.data, this.imageSorted, this.tagsSorted, this.max, this.imagesum, this.maximage, search); };
+                    this.refreshView = (search=[]) => { this.repoview(this.data, this.repoSorted, this.tagsSorted, this.max, this.reposum, this.maxrepo, search); };
                     this.refreshView(this.searchSplit($(`#gitlabRegistryUsageSearchInput`).val()));
                 }
             });
@@ -287,29 +287,29 @@
             return search;
         }
         
-        searchValidate(search, image, tag) {
+        searchValidate(search, repo, tag) {
             if (search.length == 0) {
                 return true;
             }
             if (search.length > 1) {
-                let img = false;
-                if (image !== ``) {
+                let rep = false;
+                if (repo !== ``) {
                     if (this.and) {
                         for (let i in search[0]) {
-                            if (image.search(search[0][i]) == -1) {
+                            if (repo.search(search[0][i]) == -1) {
                                 return false;
                             }
                         }
                     } else {
                         for (let i in search[0]) {
-                            if (image.search(search[0][i]) > -1) {
-                                img = true;
+                            if (repo.search(search[0][i]) > -1) {
+                                rep = true;
                                 break;
                             }
                         }
                     }
                 } else {
-                    img = true;
+                    rep = true;
                 }
                 if (tag !== ``) {
                     if (this.and) {
@@ -321,7 +321,7 @@
                     } else {
                         for (let i in search[1]) {
                             if (tag.search(search[1][i]) > -1) {
-                                if (img) return true;
+                                if (rep) return true;
                             }
                         }
                     }
@@ -329,13 +329,13 @@
             } else {
                 if (this.and) {
                     for (let i in search[0]) {
-                        if (image.search(search[0][i]) == -1 && tag.search(search[0][i]) == -1) {
+                        if (repo.search(search[0][i]) == -1 && tag.search(search[0][i]) == -1) {
                             return false;
                         }
                     }
                 } else {
                     for (let i in search[0]) {
-                        if (image.search(search[0][i]) > -1 || tag.search(search[0][i]) > -1) {
+                        if (repo.search(search[0][i]) > -1 || tag.search(search[0][i]) > -1) {
                             return true;
                         }
                     }
@@ -351,23 +351,23 @@
             this.viewDiv.empty();
             let listgroup = $(`<ul class="list-group"></ul>`);
             for (let i in sorted) {
-                let image = sorted[i][0];
+                let repo = sorted[i][0];
                 let tag = sorted[i][1];
-                if(!this.searchValidate(search, image, tag)) {
+                if(!this.searchValidate(search, repo, tag)) {
                     continue;
                 }
-                let li = $(`<li class="list-group-item"><strong>${image} : ${tag}</strong></li>`);
+                let li = $(`<li class="list-group-item"><strong>${repo} : ${tag}</strong></li>`);
                 let progress = $(`<div class="progress"></div>`);
                 progress.css(this.progressStyle);
-                let bar = this.createBar(`bg-success`, data[image][tag].storage[0], max);
-                let barText = $(`<span class="text-dark">Virtual: <strong>${this.getByteString(data[image][tag].storage[0])}</strong></span>`);
+                let bar = this.createBar(`bg-success`, data[repo][tag].storage[0], max);
+                let barText = $(`<span class="text-dark">Virtual: <strong>${this.getByteString(data[repo][tag].storage[0])}</strong></span>`);
                 barText.css(this.barTextStyle);
                 progress.append(bar).append(barText);
                 li.append(progress);
                 progress = $(`<div class="progress"></div>`);
                 progress.css(this.progressStyle);
-                bar = this.createBar(`bg-danger`, data[image][tag].storage[1], max);
-                barText = $(`<span class="text-dark">On disk: <strong>${this.getByteString(data[image][tag].storage[1])}</strong></span>`);
+                bar = this.createBar(`bg-danger`, data[repo][tag].storage[1], max);
+                barText = $(`<span class="text-dark">On disk: <strong>${this.getByteString(data[repo][tag].storage[1])}</strong></span>`);
                 barText.css(this.barTextStyle);
                 progress.append(bar).append(barText);
                 li.append(progress);
@@ -376,78 +376,78 @@
             this.viewDiv.append(listgroup);
         }
 
-        imageview(data, sorted, tagsSorted, max, imagesum, maximage, search=[]) {
+        repoview(data, sorted, tagsSorted, max, reposum, maxrepo, search=[]) {
             if (!this.descending) {
                 sorted = sorted.slice().reverse();
             }
             this.viewDiv.empty();
-            let imageListGroup = $(`<ul class="list-group"></ul>`);
+            let repoListGroup = $(`<ul class="list-group"></ul>`);
             let barcolors = [`bg-danger`, `bg-success`, ``, `bg-info`, `bg-warning`];
             let posi = 0;
 
             for (let i in sorted) {
-                let image = sorted[i], color = 0;
-                let imageListItem;
-                if (imagesum[image][0] > -1) {
-                    imageListItem = $(`<li class="list-group-item"><span><strong><a href="#${i}Tags" data-toggle="collapse">${image}<span class="pl-1"><i class="fas fa-angle-down"></i></span></a></strong></span></li>`);
+                let repo = sorted[i], color = 0;
+                let repoListItem;
+                if (reposum[repo][0] > -1) {
+                    repoListItem = $(`<li class="list-group-item"><span><strong><a href="#${i}Tags" data-toggle="collapse">${repo}<span class="pl-1"><i class="fas fa-angle-down"></i></span></a></strong></span></li>`);
                     let virtualProgress = $(`<div class="progress" data-toggle="collapse" href="#${i}Tags"></div>`);
                     virtualProgress.css(this.progressStyle);
-                    let barText = $(`<span class="text-dark">Virtual: <strong>${this.getByteString(imagesum[image][0])}</strong></span>`);
+                    let barText = $(`<span class="text-dark">Virtual: <strong>${this.getByteString(reposum[repo][0])}</strong></span>`);
                     barText.css(this.barTextStyle);
                     virtualProgress.append(barText);
-                    imageListItem.append(virtualProgress);
+                    repoListItem.append(virtualProgress);
                     let realProgress = $(`<div class="progress" data-toggle="collapse" href="#${i}Tags"></div>`);
                     realProgress.css(this.progressStyle);
-                    barText = $(`<span class="text-dark">On disk: <strong>${this.getByteString(imagesum[image][1])}</strong></span>`);
+                    barText = $(`<span class="text-dark">On disk: <strong>${this.getByteString(reposum[repo][1])}</strong></span>`);
                     barText.css(this.barTextStyle);
                     realProgress.append(barText);
                     let bar, progress;
                     let collapseDiv = $(`<div id="${i}Tags" class="collapse"></div>`);
                     let listgroup = $(`<ul class="list-group"></ul>`);
                     collapseDiv.append(listgroup);
-                    let displayImage = (tagsSorted[image].length == 0 && this.searchValidate(search, image, ``));
-                    for (let ii in tagsSorted[image]) {
+                    let displayRepository = (tagsSorted[repo].length == 0 && this.searchValidate(search, repo, ``));
+                    for (let ii in tagsSorted[repo]) {
                         if (!this.descending) {
-                            tagsSorted[image] = tagsSorted[image].slice().reverse();
+                            tagsSorted[repo] = tagsSorted[repo].slice().reverse();
                         }
-                        let tag = tagsSorted[image][ii];
+                        let tag = tagsSorted[repo][ii];
                         if (barcolors[color] !== ``) {
-                            bar = this.createBar(barcolors[color], data[image][tag].storage[0], maximage);
+                            bar = this.createBar(barcolors[color], data[repo][tag].storage[0], maxrepo);
                         } else {
-                            bar = this.createBar(``, data[image][tag].storage[0], maximage);
+                            bar = this.createBar(``, data[repo][tag].storage[0], maxrepo);
                         }
                         if (posi < 2) {
-                            this.createPopover(bar, image, tag, data[image][tag].storage, imagesum[image], `bottom`);
+                            this.createPopover(bar, repo, tag, data[repo][tag].storage, reposum[repo], `bottom`);
                         } else {
-                            this.createPopover(bar, image, tag, data[image][tag].storage, imagesum[image], `top`);
+                            this.createPopover(bar, repo, tag, data[repo][tag].storage, reposum[repo], `top`);
                         }
                         virtualProgress.append(bar);
                         if (barcolors[color] !== ``) {
-                            bar = this.createBar(barcolors[color], data[image][tag].storage[1], maximage);
+                            bar = this.createBar(barcolors[color], data[repo][tag].storage[1], maxrepo);
                         } else {
-                            bar = this.createBar(``, data[image][tag].storage[1], maximage);
+                            bar = this.createBar(``, data[repo][tag].storage[1], maxrepo);
                         }
                         if (posi < 2) {
-                            this.createPopover(bar, image, tag, data[image][tag].storage, imagesum[image], `bottom`);
+                            this.createPopover(bar, repo, tag, data[repo][tag].storage, reposum[repo], `bottom`);
                         } else {
-                            this.createPopover(bar, image, tag, data[image][tag].storage, imagesum[image], `top`);
+                            this.createPopover(bar, repo, tag, data[repo][tag].storage, reposum[repo], `top`);
                         }
                         realProgress.append(bar);
                         
-                        if (this.searchValidate(search, image, tag)) {
-                            displayImage = true;
+                        if (this.searchValidate(search, repo, tag)) {
+                            displayRepository = true;
                             let li = $(`<li class="list-group-item">${tag}</li>`);
                             progress = $(`<div class="progress"></div>`);
                             progress.css(this.progressStyle);
-                            bar = this.createBar(barcolors[color], data[image][tag].storage[0], max);
-                            barText = $(`<span class="text-dark">Virtual: <strong>${this.getByteString(data[image][tag].storage[0])}</strong></span>`);
+                            bar = this.createBar(barcolors[color], data[repo][tag].storage[0], max);
+                            barText = $(`<span class="text-dark">Virtual: <strong>${this.getByteString(data[repo][tag].storage[0])}</strong></span>`);
                             barText.css(this.barTextStyle);
                             progress.append(bar).append(barText);
                             li.append(progress);
                             progress = $(`<div class="progress"></div>`);
                             progress.css(this.progressStyle);
-                            bar = this.createBar(`bg-danger`, data[image][tag].storage[1], max);
-                            barText = $(`<span class="text-dark">On disk: <strong>${this.getByteString(data[image][tag].storage[1])}</strong></span>`);
+                            bar = this.createBar(`bg-danger`, data[repo][tag].storage[1], max);
+                            barText = $(`<span class="text-dark">On disk: <strong>${this.getByteString(data[repo][tag].storage[1])}</strong></span>`);
                             barText.css(this.barTextStyle);
                             progress.append(bar).append(barText);
                             li.append(progress);
@@ -455,27 +455,27 @@
                         }
                         color = (color + 1) % barcolors.length;
                     }
-                    if (displayImage) {
-                        imageListItem.append(virtualProgress).append(realProgress).append(collapseDiv);
-                        imageListGroup.append(imageListItem);
+                    if (displayRepository) {
+                        repoListItem.append(virtualProgress).append(realProgress).append(collapseDiv);
+                        repoListGroup.append(repoListItem);
                         posi++;
                     }
                 } else {
-                    if (this.searchValidate(search, image, ``)) {
-                        imageListItem = $(`<li class="list-group-item"><strong><span>${image}</span></strong></li>`);
-                        imageListItem.append(`<div><span class="text-muted">No data</span></div>`);
-                        imageListGroup.append(imageListItem);
+                    if (this.searchValidate(search, repo, ``)) {
+                        repoListItem = $(`<li class="list-group-item"><strong><span>${repo}</span></strong></li>`);
+                        repoListItem.append(`<div><span class="text-muted">No data</span></div>`);
+                        repoListGroup.append(repoListItem);
                     }
                 }
             }
-            this.viewDiv.append(imageListGroup);
+            this.viewDiv.append(repoListGroup);
             $(`[data-toggle="popover"]`).popover();
         }
         
-        createPopover(bar, image, tag, data, sums) {
+        createPopover(bar, repo, tag, data, sums) {
             bar.attr(`data-toggle`, `popover`);
             bar.attr(`data-html`, `true`);
-            bar.attr(`title`, `${image} : ${tag}`);
+            bar.attr(`title`, `${repo} : ${tag}`);
             bar.attr(`data-content`, `
                 <ul class='list-group'>
                     <li class='list-group-item'>
